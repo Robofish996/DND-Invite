@@ -16,6 +16,8 @@ html {
   font-family: 'Inter', sans-serif;
   color: #ffffff;
   scroll-behavior: smooth;
+  height: 100%;
+  overflow-x: hidden;
 }
 
 body {
@@ -23,6 +25,7 @@ body {
   line-height: 1.6;
   background: #0a0a0a;
   overflow-x: hidden;
+  min-height: 100%;
 }
 
 /* Bottom Banner */
@@ -88,10 +91,13 @@ body {
   position: relative;
   width: 100vw;
   height: 100vh;
+  height: 100dvh; /* Use dynamic viewport height for better mobile support */
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .hero-image-wrapper {
