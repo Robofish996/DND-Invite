@@ -2,10 +2,8 @@
 const basePath = import.meta.env.BASE_URL;
 
 // Supabase configuration
-// TODO: Replace with your Supabase config
-// Get this from Supabase Dashboard > Project Settings > API
-const SUPABASE_URL = "YOUR_SUPABASE_URL";
-const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+const SUPABASE_URL = "https://fetqossfmyfoflswpyob.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZldHFvc3NmbXlmb2Zsc3dweW9iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM1MDE1NjksImV4cCI6MjA3OTA3NzU2OX0.eK0jaYHyRMuzWITk8K8F-Y91p68CFW8Oql5Gustupq0";
 
 // Initialize Supabase (with fallback to localStorage if not configured)
 let supabaseClient = null;
