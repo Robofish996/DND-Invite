@@ -98,6 +98,7 @@ body {
   overflow: hidden;
   min-height: 100vh;
   min-height: 100dvh;
+  isolation: isolate; /* Create a new stacking context */
 }
 
 .hero-image-wrapper {
@@ -291,6 +292,7 @@ body {
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  isolation: isolate; /* Create a new stacking context */
 }
 
 .details-image-wrapper {
