@@ -220,7 +220,9 @@ document.addEventListener('DOMContentLoaded', async () => {
   const characterForm = document.getElementById('characterForm');
   
   // Load existing character (async)
-  getUserCharacter().then(existingCharacter => {
+  let existingCharacter = null;
+  getUserCharacter().then(char => {
+    existingCharacter = char;
     if (existingCharacter) {
       // Pre-fill form if user already has a character
       document.getElementById('characterName').value = existingCharacter.name;
@@ -263,26 +265,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     const success = await saveCharacter(character);
     
     if (success) {
-      // If using Supabase, the real-time listener will update automatically
-      // Otherwise, manually refresh
-      if (!supabaseInitialized) {
-        await renderRoster();
-      }
+      // Always refresh roster immediately for instant feedback
+      await renderRoster();
+      
+      // Show success message
+      const submitButton = characterForm.querySelector('.submit-button');
+      const originalText = submitButton.textContent;
+      const hadExistingCharacter = !!existingCharacter;
+      
+      submitButton.textContent = '✓ Locked In!';
+      submitButton.style.background = '#16a34a';
+      
+      setTimeout(() => {
+        submitButton.textContent = hadExistingCharacter ? 'Update Character' : originalText;
+        submitButton.style.background = '';
+      }, 2000);
     } else {
       alert('Failed to save character. Please try again.');
       return;
     }
-    
-    // Show success message
-    const submitButton = characterForm.querySelector('.submit-button');
-    const originalText = submitButton.textContent;
-    submitButton.textContent = '✓ Locked In!';
-    submitButton.style.background = '#16a34a';
-    
-    setTimeout(() => {
-      submitButton.textContent = existingCharacter ? 'Update Character' : originalText;
-      submitButton.style.background = '';
-    }, 2000);
   });
 
   // Reset button handling
