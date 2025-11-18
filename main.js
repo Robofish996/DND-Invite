@@ -193,7 +193,7 @@ function generateUserId() {
 }
 
 // Wait for DOM to be ready
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
   // Set hero image with correct base path
   const heroImage = document.querySelector('.hero-image');
   if (heroImage) {
@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  characterForm.addEventListener('submit', (e) => {
+  characterForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const name = document.getElementById('characterName').value.trim();
