@@ -6,22 +6,21 @@ document.addEventListener('DOMContentLoaded', () => {
   // Set hero image with correct base path
   const heroImage = document.querySelector('.hero-image');
   if (heroImage) {
-    heroImage.src = `${basePath}bw-image.jpg`;
+    heroImage.src = `${basePath}3e536af8f1b31e98489c5800fe9af5da.jpg`;
+  }
+
+  // Set details section image
+  const detailsImage = document.querySelector('.details-image');
+  if (detailsImage) {
+    detailsImage.src = `${basePath}363d3b735ab0afee1216dfe8f1368e4f.jpg`;
   }
 
   // Smooth scroll to details section
   const ctaButton = document.querySelector('.cta-button');
-  const detailsButton = document.querySelector('.nav-right .icon-button');
   const detailsSection = document.querySelector('.details-section');
 
   if (ctaButton && detailsSection) {
     ctaButton.addEventListener('click', () => {
-      detailsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    });
-  }
-
-  if (detailsButton && detailsSection) {
-    detailsButton.addEventListener('click', () => {
       detailsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   }

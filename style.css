@@ -153,18 +153,17 @@ body {
 .bottom-nav {
   grid-column: 1 / -1;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   padding: 2rem 0;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   animation: fadeIn 1s ease-out 0.6s both;
 }
 
-.nav-left,
-.nav-right {
+.nav-center {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  justify-content: center;
 }
 
 .cta-button {
@@ -220,17 +219,54 @@ body {
 
 /* Details Section */
 .details-section {
+  position: relative;
   background: #0a0a0a;
-  padding: 6rem 4rem;
   min-height: 100vh;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+}
+
+.details-image-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+.details-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  filter: brightness(0.3) contrast(1.1);
+}
+
+.details-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    135deg,
+    rgba(0, 0, 0, 0.7) 0%,
+    rgba(0, 0, 0, 0.5) 50%,
+    rgba(139, 69, 19, 0.3) 100%
+  );
+  z-index: 1;
 }
 
 .details-wrapper {
+  position: relative;
+  z-index: 2;
   max-width: 1200px;
   width: 100%;
+  padding: 6rem 4rem;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 3rem;
@@ -322,7 +358,7 @@ body {
     padding-right: 1.5rem;
   }
 
-  .details-section {
+  .details-wrapper {
     padding: 4rem 2rem;
   }
 }
@@ -369,17 +405,17 @@ body {
   .bottom-nav {
     flex-direction: column;
     gap: 1.5rem;
-    align-items: stretch;
+    align-items: center;
   }
 
-  .nav-left,
-  .nav-right {
+  .nav-center {
     width: 100%;
-    justify-content: space-between;
+    justify-content: center;
   }
 
   .cta-button {
-    flex: 1;
+    width: 100%;
+    max-width: 400px;
   }
 
   .details-wrapper {
