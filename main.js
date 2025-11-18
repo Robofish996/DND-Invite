@@ -166,6 +166,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 2000);
   });
 
+  // Reset button handling
+  const resetButton = document.getElementById('resetRoster');
+  if (resetButton) {
+    resetButton.addEventListener('click', () => {
+      if (confirm('Are you sure you want to reset all character data? This cannot be undone.')) {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem('dnd-user-id');
+        renderRoster();
+        
+        // Clear form
+        characterForm.reset();
+        const submitButton = characterForm.querySelector('.submit-button');
+        submitButton.textContent = 'Lock In Character';
+        
+        // Show confirmation
+        resetButton.textContent = '✓ Reset!';
+        resetButton.style.background = '#16a34a';
+        resetButton.style.borderColor = '#16a34a';
+        resetButton.style.color = '#ffffff';
+        
+        setTimeout(() => {
+          resetButton.textContent = 'Reset';
+          resetButton.style.background = '';
+          resetButton.style.borderColor = '';
+          resetButton.style.color = '';
+        }, 2000);
+      }
+    });
+  }
+
   // Initial render
   renderRoster();
   
