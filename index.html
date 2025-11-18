@@ -11,6 +11,26 @@
 </head>
 
 <body>
+  <div class="top-banner">
+    <div class="banner-content">
+      <div class="banner-item">
+        <span class="banner-icon">📅</span>
+        <div class="banner-text">
+          <span class="banner-label">Date</span>
+          <span class="banner-value">November 29, 2025</span>
+        </div>
+      </div>
+      <div class="banner-divider"></div>
+      <div class="banner-item">
+        <span class="banner-icon">🎲</span>
+        <div class="banner-text">
+          <span class="banner-label">Starting Level</span>
+          <span class="banner-value">Level 1</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="hero-section">
     <div class="hero-image-wrapper">
       <img src="/3e536af8f1b31e98489c5800fe9af5da.jpg" alt="Mystical landscape" class="hero-image">
@@ -48,25 +68,108 @@
       <div class="details-overlay"></div>
     </div>
     <div class="details-wrapper">
-      <div class="detail-item">
-        <span class="detail-icon">📅</span>
-        <div class="detail-content">
-          <span class="detail-label">Date</span>
-          <span class="detail-value">November 29, 2025</span>
+      <div class="acceptance-section">
+        <h2 class="section-title">Join the Party</h2>
+        <p class="section-subtitle">Lock in your character details and see your fellow adventurers</p>
+        
+        <form class="character-form" id="characterForm">
+          <div class="form-group">
+            <label class="form-label">Character Name</label>
+            <input 
+              type="text" 
+              class="form-input" 
+              id="characterName" 
+              placeholder="Enter your character's name" 
+              required
+              maxlength="30"
+            >
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Class</label>
+            <select class="form-select" id="characterClass" required>
+              <option value="">Choose your class...</option>
+              <option value="Barbarian">Barbarian</option>
+              <option value="Bard">Bard</option>
+              <option value="Cleric">Cleric</option>
+              <option value="Druid">Druid</option>
+              <option value="Fighter">Fighter</option>
+              <option value="Monk">Monk</option>
+              <option value="Paladin">Paladin</option>
+              <option value="Ranger">Ranger</option>
+              <option value="Rogue">Rogue</option>
+              <option value="Sorcerer">Sorcerer</option>
+              <option value="Warlock">Warlock</option>
+              <option value="Wizard">Wizard</option>
+            </select>
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="acceptDate" required>
+              <span>I accept the campaign date (November 29, 2025)</span>
+            </label>
+          </div>
+
+          <button type="submit" class="submit-button">Lock In Character</button>
+        </form>
+
+        <div class="roster-section">
+          <h3 class="roster-title">Party Roster</h3>
+          <div class="roster-list" id="rosterList">
+            <p class="roster-empty">No characters locked in yet. Be the first!</p>
+          </div>
         </div>
-      </div>
-      <div class="detail-item">
-        <span class="detail-icon">⚔️</span>
-        <div class="detail-content">
-          <span class="detail-label">Campaign</span>
-          <span class="detail-value">Phandalin Chronicles</span>
-        </div>
-      </div>
-      <div class="detail-item">
-        <span class="detail-icon">🎲</span>
-        <div class="detail-content">
-          <span class="detail-label">Starting Level</span>
-          <span class="detail-value">Level 1</span>
+
+        <div class="class-grid" id="classGrid">
+          <div class="class-indicator" data-class="Barbarian">
+            <span class="class-name">Barbarian</span>
+            <span class="class-count">0</span>
+          </div>
+          <div class="class-indicator" data-class="Bard">
+            <span class="class-name">Bard</span>
+            <span class="class-count">0</span>
+          </div>
+          <div class="class-indicator" data-class="Cleric">
+            <span class="class-name">Cleric</span>
+            <span class="class-count">0</span>
+          </div>
+          <div class="class-indicator" data-class="Druid">
+            <span class="class-name">Druid</span>
+            <span class="class-count">0</span>
+          </div>
+          <div class="class-indicator" data-class="Fighter">
+            <span class="class-name">Fighter</span>
+            <span class="class-count">0</span>
+          </div>
+          <div class="class-indicator" data-class="Monk">
+            <span class="class-name">Monk</span>
+            <span class="class-count">0</span>
+          </div>
+          <div class="class-indicator" data-class="Paladin">
+            <span class="class-name">Paladin</span>
+            <span class="class-count">0</span>
+          </div>
+          <div class="class-indicator" data-class="Ranger">
+            <span class="class-name">Ranger</span>
+            <span class="class-count">0</span>
+          </div>
+          <div class="class-indicator" data-class="Rogue">
+            <span class="class-name">Rogue</span>
+            <span class="class-count">0</span>
+          </div>
+          <div class="class-indicator" data-class="Sorcerer">
+            <span class="class-name">Sorcerer</span>
+            <span class="class-count">0</span>
+          </div>
+          <div class="class-indicator" data-class="Warlock">
+            <span class="class-name">Warlock</span>
+            <span class="class-count">0</span>
+          </div>
+          <div class="class-indicator" data-class="Wizard">
+            <span class="class-name">Wizard</span>
+            <span class="class-count">0</span>
+          </div>
         </div>
       </div>
     </div>
