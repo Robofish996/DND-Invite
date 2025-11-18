@@ -27,15 +27,15 @@ body {
 
 /* Bottom Banner */
 .bottom-banner {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: rgba(10, 10, 10, 0.95);
+  position: relative;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  z-index: 1000;
-  padding: 1rem 2rem;
+  border-radius: 8px;
+  margin-top: 3rem;
+  padding: 1.5rem 2rem;
+  z-index: 2;
 }
 
 .banner-content {
