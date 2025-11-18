@@ -480,7 +480,7 @@ body {
 
 .roster-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   margin-bottom: 2rem;
   gap: 1rem;
@@ -496,31 +496,6 @@ body {
   flex: 1;
 }
 
-.reset-button {
-  padding: 0.5rem 1.5rem;
-  background: rgba(220, 38, 38, 0.2);
-  border: 1px solid #dc2626;
-  border-radius: 6px;
-  color: #dc2626;
-  font-size: 0.875rem;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-family: 'Inter', sans-serif;
-}
-
-.reset-button:hover {
-  background: #dc2626;
-  color: #ffffff;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
-}
-
-.reset-button:active {
-  transform: translateY(0);
-}
 
 .roster-list {
   display: grid;
@@ -720,12 +695,7 @@ body {
 
   .roster-header {
     flex-direction: column;
-    align-items: stretch;
-  }
-
-  .reset-button {
-    width: 100%;
-    text-align: center;
+    align-items: center;
   }
 }
 

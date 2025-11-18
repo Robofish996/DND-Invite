@@ -286,40 +286,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
-  // Reset button handling
-  const resetButton = document.getElementById('resetRoster');
-  if (resetButton) {
-    resetButton.addEventListener('click', async () => {
-      if (confirm('Are you sure you want to reset all character data? This cannot be undone.')) {
-        const success = await clearRoster();
-        
-        if (success) {
-          localStorage.removeItem('dnd-user-id');
-          await renderRoster();
-          
-          // Clear form
-          characterForm.reset();
-          const submitButton = characterForm.querySelector('.submit-button');
-          submitButton.textContent = 'Lock In Character';
-          
-          // Show confirmation
-          resetButton.textContent = '✓ Reset!';
-          resetButton.style.background = '#16a34a';
-          resetButton.style.borderColor = '#16a34a';
-          resetButton.style.color = '#ffffff';
-          
-          setTimeout(() => {
-            resetButton.textContent = 'Reset';
-            resetButton.style.background = '';
-            resetButton.style.borderColor = '';
-            resetButton.style.color = '';
-          }, 2000);
-        } else {
-          alert('Failed to reset roster. Please try again.');
-        }
-      }
-    });
+  // Countdown timer to November 29, 2025 12:00 SAST (UTC+2)
+  const targetDate = new Date('2025-11-29T12:00:00+02:00'); // South Africa Standard Time
+  const countdownElement = document.getElementById('countdown');
+  
+  function updateCountdown() {
+    const now = new Date();
+    const difference = targetDate - now;
+    
+    if (difference <= 0) {
+      countdownElement.textContent = 'TIME UP!';
+      return;
+    }
+    
+    const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+    
+    countdownElement.textContent = `${days}d ${hours}h ${minutes}m ${seconds}s`;
   }
+  
+  // Update countdown immediately and then every second
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
 
   // Set up Supabase real-time listener or fallback
   if (supabaseInitialized && supabaseClient) {
