@@ -1,23 +1,60 @@
 // Set base path for images (Vite replaces import.meta.env.BASE_URL during build)
 const basePath = import.meta.env.BASE_URL;
 
-// Character roster storage (using localStorage - for true multi-player, use a backend)
+// Firebase configuration
+// TODO: Replace with your Firebase config
+// Get this from Firebase Console > Project Settings > Your apps
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_PROJECT_ID.appspot.com",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+// Initialize Firebase (with fallback to localStorage if not configured)
+let firebaseInitialized = false;
+let database = null;
+
+try {
+  if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_API_KEY") {
+    firebase.initializeApp(firebaseConfig);
+    database = firebase.database();
+    firebaseInitialized = true;
+    console.log("Firebase initialized - using shared database");
+  } else {
+    console.warn("Firebase not configured - using localStorage (data won't be shared across devices)");
+  }
+} catch (error) {
+  console.warn("Firebase initialization failed - using localStorage:", error);
+}
+
+// Fallback to localStorage if Firebase not configured
 const STORAGE_KEY = 'dnd-party-roster';
 
-// Get roster from storage
+// Get roster from storage (Firebase or localStorage)
 function getRoster() {
+  if (firebaseInitialized && database) {
+    // Firebase will handle this via listeners
+    return [];
+  }
   const stored = localStorage.getItem(STORAGE_KEY);
   return stored ? JSON.parse(stored) : [];
 }
 
-// Save roster to storage
+// Save roster to storage (Firebase or localStorage)
 function saveRoster(roster) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(roster));
+  if (firebaseInitialized && database) {
+    database.ref('roster').set(roster);
+  } else {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(roster));
+  }
 }
 
-// Render roster
-function renderRoster() {
-  const roster = getRoster();
+// Render roster from data
+function renderRosterFromData(roster) {
   const rosterList = document.getElementById('rosterList');
   const classGrid = document.getElementById('classGrid');
   
@@ -55,6 +92,12 @@ function renderRoster() {
   });
 }
 
+// Render roster (gets data first)
+function renderRoster() {
+  const roster = getRoster();
+  renderRosterFromData(roster);
+}
+
 // Escape HTML to prevent XSS
 function escapeHtml(text) {
   const div = document.createElement('div');
@@ -63,11 +106,20 @@ function escapeHtml(text) {
 }
 
 // Check if user already has a character
-function getUserCharacter() {
+async function getUserCharacter() {
   const userId = localStorage.getItem('dnd-user-id') || generateUserId();
   localStorage.setItem('dnd-user-id', userId);
   
-  const roster = getRoster();
+  let roster = [];
+  if (firebaseInitialized && database) {
+    // Get from Firebase
+    const snapshot = await database.ref('roster').once('value');
+    const data = snapshot.val();
+    roster = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
+  } else {
+    roster = getRoster();
+  }
+  
   return roster.find(char => char.userId === userId);
 }
 
@@ -102,18 +154,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Character form handling
   const characterForm = document.getElementById('characterForm');
-  const existingCharacter = getUserCharacter();
   
-  if (existingCharacter) {
-    // Pre-fill form if user already has a character
-    document.getElementById('characterName').value = existingCharacter.name;
-    document.getElementById('characterClass').value = existingCharacter.class;
-    document.getElementById('acceptDate').checked = true;
-    
-    // Update form button text
-    const submitButton = characterForm.querySelector('.submit-button');
-    submitButton.textContent = 'Update Character';
-  }
+  // Load existing character (async)
+  getUserCharacter().then(existingCharacter => {
+    if (existingCharacter) {
+      // Pre-fill form if user already has a character
+      document.getElementById('characterName').value = existingCharacter.name;
+      document.getElementById('characterClass').value = existingCharacter.class;
+      document.getElementById('acceptDate').checked = true;
+      
+      // Update form button text
+      const submitButton = characterForm.querySelector('.submit-button');
+      submitButton.textContent = 'Update Character';
+    }
+  });
 
   characterForm.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -135,9 +189,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const userId = localStorage.getItem('dnd-user-id') || generateUserId();
     localStorage.setItem('dnd-user-id', userId);
     
-    const roster = getRoster();
-    const existingIndex = roster.findIndex(char => char.userId === userId);
-    
     const character = {
       userId,
       name,
@@ -145,14 +196,37 @@ document.addEventListener('DOMContentLoaded', () => {
       lockedIn: new Date().toISOString()
     };
 
-    if (existingIndex >= 0) {
-      roster[existingIndex] = character;
+    if (firebaseInitialized && database) {
+      // Get current roster from Firebase
+      database.ref('roster').once('value', (snapshot) => {
+        const data = snapshot.val();
+        let roster = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
+        
+        const existingIndex = roster.findIndex(char => char.userId === userId);
+        
+        if (existingIndex >= 0) {
+          roster[existingIndex] = character;
+        } else {
+          roster.push(character);
+        }
+        
+        saveRoster(roster);
+        // renderRoster will be called automatically by Firebase listener
+      });
     } else {
-      roster.push(character);
+      // Use localStorage
+      const roster = getRoster();
+      const existingIndex = roster.findIndex(char => char.userId === userId);
+      
+      if (existingIndex >= 0) {
+        roster[existingIndex] = character;
+      } else {
+        roster.push(character);
+      }
+      
+      saveRoster(roster);
+      renderRoster();
     }
-
-    saveRoster(roster);
-    renderRoster();
     
     // Show success message
     const submitButton = characterForm.querySelector('.submit-button');
@@ -171,7 +245,11 @@ document.addEventListener('DOMContentLoaded', () => {
   if (resetButton) {
     resetButton.addEventListener('click', () => {
       if (confirm('Are you sure you want to reset all character data? This cannot be undone.')) {
-        localStorage.removeItem(STORAGE_KEY);
+        if (firebaseInitialized && database) {
+          database.ref('roster').set([]);
+        } else {
+          localStorage.removeItem(STORAGE_KEY);
+        }
         localStorage.removeItem('dnd-user-id');
         renderRoster();
         
@@ -196,15 +274,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Set up Firebase real-time listener or fallback
+  if (firebaseInitialized && database) {
+    // Real-time listener for Firebase
+    database.ref('roster').on('value', (snapshot) => {
+      const roster = snapshot.val() || [];
+      renderRosterFromData(Array.isArray(roster) ? roster : Object.values(roster));
+    });
+  } else {
+    // Fallback: Initial render and periodic refresh for localStorage
+    renderRoster();
+    setInterval(() => {
+      renderRoster();
+    }, 5000);
+  }
+
   // Initial render
   renderRoster();
-  
-  // Auto-refresh roster every 5 seconds (for multi-player updates)
-  // Note: This only works if all players use the same browser
-  // For true cross-device sharing, integrate with a backend
-  setInterval(() => {
-    renderRoster();
-  }, 5000);
 
   // Add subtle parallax effect on scroll
   let lastScroll = 0;
