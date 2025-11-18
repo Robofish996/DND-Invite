@@ -1,55 +1,123 @@
 // Set base path for images (Vite replaces import.meta.env.BASE_URL during build)
 const basePath = import.meta.env.BASE_URL;
 
-// Firebase configuration
-// TODO: Replace with your Firebase config
-// Get this from Firebase Console > Project Settings > Your apps
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
+// Supabase configuration
+// TODO: Replace with your Supabase config
+// Get this from Supabase Dashboard > Project Settings > API
+const SUPABASE_URL = "YOUR_SUPABASE_URL";
+const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
 
-// Initialize Firebase (with fallback to localStorage if not configured)
-let firebaseInitialized = false;
-let database = null;
+// Initialize Supabase (with fallback to localStorage if not configured)
+let supabaseClient = null;
+let supabaseInitialized = false;
 
 try {
-  if (firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_API_KEY") {
-    firebase.initializeApp(firebaseConfig);
-    database = firebase.database();
-    firebaseInitialized = true;
-    console.log("Firebase initialized - using shared database");
+  if (SUPABASE_URL && SUPABASE_URL !== "YOUR_SUPABASE_URL" && SUPABASE_ANON_KEY && SUPABASE_ANON_KEY !== "YOUR_SUPABASE_ANON_KEY") {
+    supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    supabaseInitialized = true;
+    console.log("Supabase initialized - using shared database");
   } else {
-    console.warn("Firebase not configured - using localStorage (data won't be shared across devices)");
+    console.warn("Supabase not configured - using localStorage (data won't be shared across devices)");
   }
 } catch (error) {
-  console.warn("Firebase initialization failed - using localStorage:", error);
+  console.warn("Supabase initialization failed - using localStorage:", error);
 }
 
-// Fallback to localStorage if Firebase not configured
+// Fallback to localStorage if Supabase not configured
 const STORAGE_KEY = 'dnd-party-roster';
 
-// Get roster from storage (Firebase or localStorage)
-function getRoster() {
-  if (firebaseInitialized && database) {
-    // Firebase will handle this via listeners
-    return [];
+// Get roster from storage (Supabase or localStorage)
+async function getRoster() {
+  if (supabaseInitialized && supabaseClient) {
+    const { data, error } = await supabaseClient
+      .from('roster')
+      .select('*')
+      .order('locked_in', { ascending: true });
+    
+    if (error) {
+      console.error('Error fetching roster:', error);
+      return [];
+    }
+    return data || [];
   }
   const stored = localStorage.getItem(STORAGE_KEY);
   return stored ? JSON.parse(stored) : [];
 }
 
-// Save roster to storage (Firebase or localStorage)
-function saveRoster(roster) {
-  if (firebaseInitialized && database) {
-    database.ref('roster').set(roster);
+// Save character to storage (Supabase or localStorage)
+async function saveCharacter(character) {
+  if (supabaseInitialized && supabaseClient) {
+    // Check if character exists
+    const { data: existing } = await supabaseClient
+      .from('roster')
+      .select('*')
+      .eq('user_id', character.userId)
+      .single();
+    
+    if (existing) {
+      // Update existing
+      const { error } = await supabaseClient
+        .from('roster')
+        .update({
+          name: character.name,
+          class: character.class,
+          locked_in: character.lockedIn
+        })
+        .eq('user_id', character.userId);
+      
+      if (error) {
+        console.error('Error updating character:', error);
+        return false;
+      }
+    } else {
+      // Insert new
+      const { error } = await supabaseClient
+        .from('roster')
+        .insert({
+          user_id: character.userId,
+          name: character.name,
+          class: character.class,
+          locked_in: character.lockedIn
+        });
+      
+      if (error) {
+        console.error('Error inserting character:', error);
+        return false;
+      }
+    }
+    return true;
   } else {
+    // Use localStorage
+    const roster = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    const existingIndex = roster.findIndex(char => char.userId === character.userId);
+    
+    if (existingIndex >= 0) {
+      roster[existingIndex] = character;
+    } else {
+      roster.push(character);
+    }
+    
     localStorage.setItem(STORAGE_KEY, JSON.stringify(roster));
+    return true;
+  }
+}
+
+// Delete all roster (for reset)
+async function clearRoster() {
+  if (supabaseInitialized && supabaseClient) {
+    const { error } = await supabaseClient
+      .from('roster')
+      .delete()
+      .neq('user_id', ''); // Delete all
+    
+    if (error) {
+      console.error('Error clearing roster:', error);
+      return false;
+    }
+    return true;
+  } else {
+    localStorage.removeItem(STORAGE_KEY);
+    return true;
   }
 }
 
@@ -58,11 +126,18 @@ function renderRosterFromData(roster) {
   const rosterList = document.getElementById('rosterList');
   const classGrid = document.getElementById('classGrid');
   
+  // Normalize data (handle both userId and user_id)
+  const normalizedRoster = roster.map(char => ({
+    userId: char.userId || char.user_id,
+    name: char.name,
+    class: char.class
+  }));
+  
   // Clear roster list
-  if (roster.length === 0) {
+  if (normalizedRoster.length === 0) {
     rosterList.innerHTML = '<p class="roster-empty">No characters locked in yet. Be the first!</p>';
   } else {
-    rosterList.innerHTML = roster.map((character, index) => `
+    rosterList.innerHTML = normalizedRoster.map((character, index) => `
       <div class="roster-card" style="animation-delay: ${index * 0.1}s">
         <div class="roster-character-name">${escapeHtml(character.name)}</div>
         <div class="roster-character-class">${escapeHtml(character.class)}</div>
@@ -72,7 +147,7 @@ function renderRosterFromData(roster) {
 
   // Update class counts
   const classCounts = {};
-  roster.forEach(char => {
+  normalizedRoster.forEach(char => {
     classCounts[char.class] = (classCounts[char.class] || 0) + 1;
   });
 
@@ -93,8 +168,8 @@ function renderRosterFromData(roster) {
 }
 
 // Render roster (gets data first)
-function renderRoster() {
-  const roster = getRoster();
+async function renderRoster() {
+  const roster = await getRoster();
   renderRosterFromData(roster);
 }
 
@@ -110,17 +185,8 @@ async function getUserCharacter() {
   const userId = localStorage.getItem('dnd-user-id') || generateUserId();
   localStorage.setItem('dnd-user-id', userId);
   
-  let roster = [];
-  if (firebaseInitialized && database) {
-    // Get from Firebase
-    const snapshot = await database.ref('roster').once('value');
-    const data = snapshot.val();
-    roster = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
-  } else {
-    roster = getRoster();
-  }
-  
-  return roster.find(char => char.userId === userId);
+  const roster = await getRoster();
+  return roster.find(char => char.userId === userId || char.user_id === userId);
 }
 
 // Generate unique user ID
@@ -196,36 +262,17 @@ document.addEventListener('DOMContentLoaded', () => {
       lockedIn: new Date().toISOString()
     };
 
-    if (firebaseInitialized && database) {
-      // Get current roster from Firebase
-      database.ref('roster').once('value', (snapshot) => {
-        const data = snapshot.val();
-        let roster = data ? (Array.isArray(data) ? data : Object.values(data)) : [];
-        
-        const existingIndex = roster.findIndex(char => char.userId === userId);
-        
-        if (existingIndex >= 0) {
-          roster[existingIndex] = character;
-        } else {
-          roster.push(character);
-        }
-        
-        saveRoster(roster);
-        // renderRoster will be called automatically by Firebase listener
-      });
-    } else {
-      // Use localStorage
-      const roster = getRoster();
-      const existingIndex = roster.findIndex(char => char.userId === userId);
-      
-      if (existingIndex >= 0) {
-        roster[existingIndex] = character;
-      } else {
-        roster.push(character);
+    const success = await saveCharacter(character);
+    
+    if (success) {
+      // If using Supabase, the real-time listener will update automatically
+      // Otherwise, manually refresh
+      if (!supabaseInitialized) {
+        await renderRoster();
       }
-      
-      saveRoster(roster);
-      renderRoster();
+    } else {
+      alert('Failed to save character. Please try again.');
+      return;
     }
     
     // Show success message
@@ -243,54 +290,61 @@ document.addEventListener('DOMContentLoaded', () => {
   // Reset button handling
   const resetButton = document.getElementById('resetRoster');
   if (resetButton) {
-    resetButton.addEventListener('click', () => {
+    resetButton.addEventListener('click', async () => {
       if (confirm('Are you sure you want to reset all character data? This cannot be undone.')) {
-        if (firebaseInitialized && database) {
-          database.ref('roster').set([]);
+        const success = await clearRoster();
+        
+        if (success) {
+          localStorage.removeItem('dnd-user-id');
+          await renderRoster();
+          
+          // Clear form
+          characterForm.reset();
+          const submitButton = characterForm.querySelector('.submit-button');
+          submitButton.textContent = 'Lock In Character';
+          
+          // Show confirmation
+          resetButton.textContent = '✓ Reset!';
+          resetButton.style.background = '#16a34a';
+          resetButton.style.borderColor = '#16a34a';
+          resetButton.style.color = '#ffffff';
+          
+          setTimeout(() => {
+            resetButton.textContent = 'Reset';
+            resetButton.style.background = '';
+            resetButton.style.borderColor = '';
+            resetButton.style.color = '';
+          }, 2000);
         } else {
-          localStorage.removeItem(STORAGE_KEY);
+          alert('Failed to reset roster. Please try again.');
         }
-        localStorage.removeItem('dnd-user-id');
-        renderRoster();
-        
-        // Clear form
-        characterForm.reset();
-        const submitButton = characterForm.querySelector('.submit-button');
-        submitButton.textContent = 'Lock In Character';
-        
-        // Show confirmation
-        resetButton.textContent = '✓ Reset!';
-        resetButton.style.background = '#16a34a';
-        resetButton.style.borderColor = '#16a34a';
-        resetButton.style.color = '#ffffff';
-        
-        setTimeout(() => {
-          resetButton.textContent = 'Reset';
-          resetButton.style.background = '';
-          resetButton.style.borderColor = '';
-          resetButton.style.color = '';
-        }, 2000);
       }
     });
   }
 
-  // Set up Firebase real-time listener or fallback
-  if (firebaseInitialized && database) {
-    // Real-time listener for Firebase
-    database.ref('roster').on('value', (snapshot) => {
-      const roster = snapshot.val() || [];
-      renderRosterFromData(Array.isArray(roster) ? roster : Object.values(roster));
-    });
+  // Set up Supabase real-time listener or fallback
+  if (supabaseInitialized && supabaseClient) {
+    // Real-time listener for Supabase
+    supabaseClient
+      .channel('roster-changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'roster' },
+        () => {
+          // Reload roster when changes occur
+          renderRoster();
+        }
+      )
+      .subscribe();
+    
+    // Initial render
+    await renderRoster();
   } else {
     // Fallback: Initial render and periodic refresh for localStorage
-    renderRoster();
-    setInterval(() => {
-      renderRoster();
+    await renderRoster();
+    setInterval(async () => {
+      await renderRoster();
     }, 5000);
   }
-
-  // Initial render
-  renderRoster();
 
   // Add subtle parallax effect on scroll
   let lastScroll = 0;
