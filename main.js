@@ -277,20 +277,38 @@ function createAmbientParticles() {
       top: 0;
       left: 0;
       width: 100vw;
-      height: 100vh;
+      height: 100%;
+      min-height: 100vh;
       pointer-events: none;
       overflow: visible;
-      z-index: 2;
+      z-index: 1000;
     `;
     document.body.appendChild(particleContainer);
+    
+    // Update container height on scroll to cover full document
+    function updateContainerHeight() {
+      const documentHeight = Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight,
+        document.body.offsetHeight,
+        document.documentElement.offsetHeight,
+        document.body.clientHeight,
+        document.documentElement.clientHeight
+      );
+      particleContainer.style.height = `${documentHeight}px`;
+    }
+    
+    updateContainerHeight();
+    window.addEventListener('scroll', updateContainerHeight, { passive: true });
+    window.addEventListener('resize', updateContainerHeight, { passive: true });
   }
 
   function createParticle() {
     const particle = document.createElement('div');
-    const size = Math.random() * 3 + 2; // 2-5px
+    const size = Math.random() * 4 + 2; // 2-6px - slightly larger
     const startX = Math.random() * 100;
-    const duration = Math.random() * 10 + 8; // 8-18 seconds - faster falling
-    const drift = (Math.random() - 0.5) * 200;
+    const duration = Math.random() * 12 + 8; // 8-20 seconds
+    const drift = (Math.random() - 0.5) * 250;
     
     const animName = `fallDown-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
@@ -298,13 +316,22 @@ function createAmbientParticles() {
       position: fixed;
       width: ${size}px;
       height: ${size}px;
-      background: rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.5);
       border-radius: 50%;
-      top: -20px;
+      top: -30px;
       left: ${startX}%;
-      box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.4);
       pointer-events: none;
+      z-index: 1001;
     `;
+
+    // Calculate end position based on document height
+    const documentHeight = Math.max(
+      document.body.scrollHeight,
+      document.documentElement.scrollHeight,
+      document.body.offsetHeight,
+      document.documentElement.offsetHeight
+    );
 
     const style = document.createElement('style');
     style.textContent = `
@@ -313,14 +340,14 @@ function createAmbientParticles() {
           transform: translate(0, 0);
           opacity: 0;
         }
-        5% {
-          opacity: 0.5;
+        3% {
+          opacity: 0.6;
         }
-        95% {
-          opacity: 0.5;
+        97% {
+          opacity: 0.6;
         }
         100% {
-          transform: translate(${drift}px, calc(100vh + 100px));
+          transform: translate(${drift}px, ${documentHeight + 100}px);
           opacity: 0;
         }
       }
@@ -339,16 +366,19 @@ function createAmbientParticles() {
   }
 
   // Create more particles initially
-  for (let i = 0; i < 20; i++) {
-    setTimeout(() => createParticle(), i * 800);
+  for (let i = 0; i < 25; i++) {
+    setTimeout(() => createParticle(), i * 600);
   }
 
   // Create particles continuously with shorter interval
-  setInterval(() => {
-    if (particleContainer.children.length < 30) {
+  const particleInterval = setInterval(() => {
+    if (particleContainer && particleContainer.children.length < 35) {
       createParticle();
     }
-  }, 1200);
+  }, 1000);
+
+  // Store interval for cleanup
+  window.particleInterval = particleInterval;
 }
 
 // Wait for DOM to be ready
