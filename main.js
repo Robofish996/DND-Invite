@@ -199,7 +199,7 @@ function generateUserId() {
 // Text randomization reveal animation
 function revealText(element, targetText, options = {}) {
   const {
-    speed = 30, // milliseconds between updates
+    speed = 15, // milliseconds between updates
     randomness = 0.7, // probability of showing random char vs revealing (0-1)
     chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?',
     iterations = 3 // number of random passes before revealing each char
