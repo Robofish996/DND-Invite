@@ -268,21 +268,28 @@ function revealText(element, targetText, options = {}) {
 // Falling leaves animation
 function createFallingLeaves() {
   const heroSection = document.querySelector('.hero-section');
-  if (!heroSection) return;
+  if (!heroSection) {
+    console.log('Hero section not found');
+    return;
+  }
+
+  console.log('Creating falling leaves...');
 
   const leafContainer = document.createElement('div');
   leafContainer.className = 'leaf-container';
   leafContainer.style.cssText = `
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
     pointer-events: none;
     overflow: visible;
-    z-index: 3;
+    z-index: 11;
   `;
-  heroSection.appendChild(leafContainer);
+  document.body.appendChild(leafContainer);
+
+  console.log('Leaf container created and appended');
 
   const leafColors = ['#d2691e', '#cd853f', '#daa520', '#b8860b', '#8b4513', '#a0522d', '#d2b48c'];
   const leafSizes = [25, 30, 35, 40, 45]; // pixels - made larger for visibility
@@ -314,12 +321,16 @@ function createFallingLeaves() {
       top: -50px;
       left: ${startX}%;
       font-size: ${size}px;
-      opacity: 0.9;
+      opacity: 1;
       transform: rotate(${Math.random() * 360}deg);
       filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
       pointer-events: none;
       will-change: transform;
+      display: block;
+      line-height: 1;
     `;
+
+    console.log(`Creating leaf ${leafCount} at position ${startX}%`);
 
     // Add keyframe animation for this specific leaf
     const style = document.createElement('style');
@@ -328,15 +339,15 @@ function createFallingLeaves() {
       @keyframes ${animationName} {
         0% {
           transform: translate(0, 0) rotate(0deg);
-          opacity: 0.9;
+          opacity: 1;
         }
         50% {
           transform: translate(${horizontalDrift}px, 50vh) rotate(${rotation / 2}deg);
-          opacity: 0.95;
+          opacity: 1;
         }
         100% {
           transform: translate(${horizontalDrift * 1.2}px, calc(100vh + 50px)) rotate(${rotation}deg);
-          opacity: 0;
+          opacity: 0.3;
         }
       }
       .falling-leaf[data-animation="${animationName}"] {
