@@ -60,6 +60,7 @@ async function saveCharacter(character) {
           player_name: character.playerName,
           name: character.name,
           class: character.class,
+          preferred_date: character.preferredDate,
           locked_in: character.lockedIn
         })
         .eq('user_id', character.userId);
@@ -77,6 +78,7 @@ async function saveCharacter(character) {
           player_name: character.playerName,
           name: character.name,
           class: character.class,
+          preferred_date: character.preferredDate,
           locked_in: character.lockedIn
         });
       
@@ -126,13 +128,62 @@ function renderRosterFromData(roster) {
   const rosterList = document.getElementById('rosterList');
   const classGrid = document.getElementById('classGrid');
   
-  // Normalize data (handle both userId and user_id, and playerName/player_name)
+  // Normalize data (handle both userId and user_id, and playerName/player_name, preferredDate/preferred_date)
   const normalizedRoster = roster.map(char => ({
     userId: char.userId || char.user_id,
     playerName: char.playerName || char.player_name || '',
     name: char.name,
-    class: char.class
+    class: char.class,
+    preferredDate: char.preferredDate || char.preferred_date || '2025-11-29'
   }));
+  
+  // Render date preferences
+  const datePreferences = {
+    '2025-11-29': [],
+    '2025-12-06': [],
+    '2026-01-09': []
+  };
+  
+  normalizedRoster.forEach(char => {
+    if (char.preferredDate && datePreferences[char.preferredDate]) {
+      datePreferences[char.preferredDate].push(char);
+    }
+  });
+  
+  // Update date preference displays
+  Object.keys(datePreferences).forEach(date => {
+    const players = datePreferences[date];
+    const card = document.querySelector(`.date-preference-card[data-date="${date}"]`);
+    if (card) {
+      const countElement = card.querySelector('.date-preference-count');
+      const listElement = card.querySelector('.date-preference-list');
+      
+      if (countElement) {
+        countElement.textContent = players.length;
+      }
+      
+      if (listElement) {
+        if (players.length === 0) {
+          listElement.innerHTML = '<p class="date-preference-empty">No players yet</p>';
+        } else {
+          listElement.innerHTML = players.map(player => `
+            <div class="date-preference-player">
+              <span class="date-preference-player-name">${escapeHtml(player.playerName)}</span>
+            </div>
+          `).join('');
+        }
+      }
+      
+      // Highlight most popular date
+      const counts = Object.values(datePreferences).map(p => p.length);
+      const maxCount = counts.length > 0 ? Math.max(...counts) : 0;
+      if (players.length === maxCount && maxCount > 0) {
+        card.classList.add('most-popular');
+      } else {
+        card.classList.remove('most-popular');
+      }
+    }
+  });
   
   // Clear roster list
   if (normalizedRoster.length === 0) {
@@ -506,7 +557,13 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
       document.getElementById('characterName').value = existingCharacter.name;
       document.getElementById('characterClass').value = existingCharacter.class;
-      document.getElementById('acceptDate').checked = true;
+      
+      // Set preferred date
+      const preferredDate = existingCharacter.preferredDate || existingCharacter.preferred_date || '2025-11-29';
+      const dateRadio = document.querySelector(`input[name="preferredDate"][value="${preferredDate}"]`);
+      if (dateRadio) {
+        dateRadio.checked = true;
+      }
       
       // Update form button text
       const submitButton = characterForm.querySelector('.submit-button');
@@ -520,10 +577,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const playerName = document.getElementById('playerName').value.trim();
     const name = document.getElementById('characterName').value.trim();
     const characterClass = document.getElementById('characterClass').value;
-    const acceptDate = document.getElementById('acceptDate').checked;
+    const preferredDateInput = document.querySelector('input[name="preferredDate"]:checked');
     
-    if (!acceptDate) {
-      alert('Please accept the campaign date to continue.');
+    if (!preferredDateInput) {
+      alert('Please select your preferred date.');
       return;
     }
 
@@ -540,6 +597,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       playerName,
       name,
       class: characterClass,
+      preferredDate: preferredDateInput.value,
       lockedIn: new Date().toISOString()
     };
 
