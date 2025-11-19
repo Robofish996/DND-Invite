@@ -265,6 +265,110 @@ function revealText(element, targetText, options = {}) {
   setTimeout(update, 100);
 }
 
+// Falling leaves animation
+function createFallingLeaves() {
+  const heroSection = document.querySelector('.hero-section');
+  if (!heroSection) return;
+
+  const leafContainer = document.createElement('div');
+  leafContainer.className = 'leaf-container';
+  leafContainer.style.cssText = `
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 1;
+  `;
+  heroSection.appendChild(leafContainer);
+
+  const leafColors = ['#d2691e', '#cd853f', '#daa520', '#b8860b', '#8b4513', '#a0522d', '#d2b48c'];
+  const leafSizes = [15, 20, 25, 30, 35]; // pixels
+  let leafCount = 0;
+  const maxLeaves = 15;
+
+  function createLeaf() {
+    if (leafCount >= maxLeaves) return;
+
+    const leaf = document.createElement('div');
+    leaf.className = 'falling-leaf';
+    leafCount++;
+
+    // Random properties
+    const size = leafSizes[Math.floor(Math.random() * leafSizes.length)];
+    const color = leafColors[Math.floor(Math.random() * leafColors.length)];
+    const startX = Math.random() * 100; // percentage from left
+    const fallDuration = 8 + Math.random() * 7; // 8-15 seconds
+    const horizontalDrift = (Math.random() - 0.5) * 200; // pixels left/right
+    const rotation = Math.random() * 720 + 360; // degrees
+    const delay = Math.random() * 2; // seconds
+
+    // Create leaf shape using CSS
+    const leafShape = Math.random() > 0.5 ? '🍂' : '🍁';
+    
+    leaf.innerHTML = leafShape;
+    leaf.style.cssText = `
+      position: absolute;
+      top: -50px;
+      left: ${startX}%;
+      font-size: ${size}px;
+      color: ${color};
+      opacity: 0.8;
+      transform: rotate(${Math.random() * 360}deg);
+      animation: fall ${fallDuration}s linear ${delay}s forwards;
+      filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.3));
+      pointer-events: none;
+    `;
+
+    // Add keyframe animation for this specific leaf
+    const style = document.createElement('style');
+    const animationName = `fall-${Date.now()}-${Math.random()}`;
+    style.textContent = `
+      @keyframes ${animationName} {
+        0% {
+          transform: translate(0, 0) rotate(0deg);
+          opacity: 0.8;
+        }
+        50% {
+          transform: translate(${horizontalDrift}px, 50vh) rotate(${rotation / 2}deg);
+          opacity: 0.9;
+        }
+        100% {
+          transform: translate(${horizontalDrift * 1.2}px, 100vh) rotate(${rotation}deg);
+          opacity: 0;
+        }
+      }
+      .falling-leaf[data-animation="${animationName}"] {
+        animation-name: ${animationName};
+      }
+    `;
+    document.head.appendChild(style);
+    leaf.setAttribute('data-animation', animationName);
+
+    leafContainer.appendChild(leaf);
+
+    // Remove leaf after animation completes
+    setTimeout(() => {
+      leaf.remove();
+      leafCount--;
+    }, (fallDuration + delay) * 1000);
+  }
+
+  // Create initial leaves
+  for (let i = 0; i < 5; i++) {
+    setTimeout(() => createLeaf(), i * 1000);
+  }
+
+  // Continuously create new leaves
+  setInterval(() => {
+    if (leafCount < maxLeaves) {
+      createLeaf();
+    }
+  }, 2000);
+}
+
 // Wait for DOM to be ready
 document.addEventListener('DOMContentLoaded', async () => {
   // Set hero image with correct base path
@@ -305,6 +409,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       });
     }, 2000); // Start after title lines
   }
+
+  // Start falling leaves animation
+  createFallingLeaves();
 
   // Smooth scroll to details section
   const ctaButton = document.querySelector('.cta-button');
