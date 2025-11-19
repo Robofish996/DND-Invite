@@ -312,25 +312,29 @@ function createFallingLeaves() {
     const rotation = Math.random() * 720 + 360; // degrees
     const delay = Math.random() * 2; // seconds
 
-    // Create leaf shape using CSS
-    const leafShape = Math.random() > 0.5 ? '🍂' : '🍁';
+    // Create leaf shape - use SVG for better compatibility
+    const leafSVG = `
+      <svg width="${size}" height="${size}" viewBox="0 0 24 24" style="filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));">
+        <path fill="${color}" d="M12,2C8.14,2 5,5.14 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9C19,5.14 15.86,2 12,2M12,4C14.76,4 17,6.24 17,9C17,11.88 14.12,16.19 12,18.88C9.88,16.19 7,11.88 7,9C7,6.24 9.24,4 12,4Z"/>
+      </svg>
+    `;
     
-    leaf.innerHTML = leafShape;
+    leaf.innerHTML = leafSVG;
     leaf.style.cssText = `
       position: absolute;
       top: -50px;
       left: ${startX}%;
-      font-size: ${size}px;
+      width: ${size}px;
+      height: ${size}px;
       opacity: 1;
       transform: rotate(${Math.random() * 360}deg);
-      filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
       pointer-events: none;
       will-change: transform;
       display: block;
-      line-height: 1;
+      z-index: 100;
     `;
 
-    console.log(`Creating leaf ${leafCount} at position ${startX}%`);
+    console.log(`Creating leaf ${leafCount} at position ${startX}%, size ${size}px, color ${color}`);
 
     // Add keyframe animation for this specific leaf
     const style = document.createElement('style');
@@ -367,16 +371,24 @@ function createFallingLeaves() {
   }
 
   // Create initial leaves immediately
-  for (let i = 0; i < 5; i++) {
-    setTimeout(() => createLeaf(), i * 500);
+  console.log('Starting to create initial leaves...');
+  for (let i = 0; i < 8; i++) {
+    setTimeout(() => {
+      createLeaf();
+      console.log(`Scheduled leaf ${i + 1}`);
+    }, i * 300);
   }
 
   // Continuously create new leaves
-  setInterval(() => {
+  const leafInterval = setInterval(() => {
     if (leafCount < maxLeaves) {
       createLeaf();
+      console.log(`Creating new leaf via interval, current count: ${leafCount}`);
     }
-  }, 1500);
+  }, 1200);
+
+  // Store interval for potential cleanup
+  window.leafInterval = leafInterval;
 }
 
 // Wait for DOM to be ready
@@ -420,8 +432,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 2000); // Start after title lines
   }
 
-  // Start falling leaves animation
-  createFallingLeaves();
+  // Start falling leaves animation after a short delay
+  setTimeout(() => {
+    console.log('Attempting to create falling leaves...');
+    createFallingLeaves();
+  }, 500);
 
   // Smooth scroll to details section
   const ctaButton = document.querySelector('.cta-button');
