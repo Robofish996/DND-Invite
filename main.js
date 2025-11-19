@@ -281,7 +281,8 @@ function createAmbientParticles() {
       min-height: 100vh;
       pointer-events: none;
       overflow: visible;
-      z-index: 1000;
+      z-index: 9999;
+      isolation: auto;
     `;
     document.body.appendChild(particleContainer);
     
@@ -316,13 +317,14 @@ function createAmbientParticles() {
       position: fixed;
       width: ${size}px;
       height: ${size}px;
-      background: rgba(255, 255, 255, 0.5);
+      background: rgba(255, 255, 255, 0.6);
       border-radius: 50%;
       top: -30px;
       left: ${startX}%;
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.8), 0 0 20px rgba(255, 255, 255, 0.4);
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.9), 0 0 24px rgba(255, 255, 255, 0.6);
       pointer-events: none;
-      z-index: 1001;
+      z-index: 99999;
+      will-change: transform;
     `;
 
     // Calculate end position based on document height
@@ -340,11 +342,11 @@ function createAmbientParticles() {
           transform: translate(0, 0);
           opacity: 0;
         }
-        3% {
-          opacity: 0.6;
+        2% {
+          opacity: 0.8;
         }
-        97% {
-          opacity: 0.6;
+        98% {
+          opacity: 0.8;
         }
         100% {
           transform: translate(${drift}px, ${documentHeight + 100}px);
