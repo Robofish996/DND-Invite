@@ -582,19 +582,4 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 5000);
   }
 
-  // Add subtle parallax effect on scroll
-  let lastScroll = 0;
-  const heroSection = document.querySelector('.hero-section');
-  
-  window.addEventListener('scroll', () => {
-    const currentScroll = window.pageYOffset;
-    if (heroImage && heroSection) {
-      const heroHeight = heroSection.offsetHeight;
-      if (currentScroll < heroHeight) {
-        const scrollOffset = currentScroll * 0.5;
-        heroImage.style.transform = `translateY(${scrollOffset}px) scale(1.05)`;
-      }
-    }
-    lastScroll = currentScroll;
-  });
 });
