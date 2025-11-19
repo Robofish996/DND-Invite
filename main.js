@@ -196,6 +196,75 @@ function generateUserId() {
   return `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
+// Text randomization reveal animation
+function revealText(element, targetText, options = {}) {
+  const {
+    speed = 30, // milliseconds between updates
+    randomness = 0.7, // probability of showing random char vs revealing (0-1)
+    chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;:,.<>?',
+    iterations = 3 // number of random passes before revealing each char
+  } = options;
+
+  const textLength = targetText.length;
+  let revealed = Array(textLength).fill(false);
+  let currentText = Array(textLength).fill(' ');
+  let iteration = 0;
+
+  function getRandomChar() {
+    return chars[Math.floor(Math.random() * chars.length)];
+  }
+
+  function update() {
+    let allRevealed = true;
+
+    for (let i = 0; i < textLength; i++) {
+      if (revealed[i]) {
+        currentText[i] = targetText[i];
+      } else {
+        allRevealed = false;
+        
+        // For each character, do a few random iterations, then reveal it
+        const charIteration = Math.floor(iteration / textLength);
+        
+        if (charIteration >= iterations && Math.random() > randomness) {
+          revealed[i] = true;
+          currentText[i] = targetText[i];
+        } else {
+          // Show random character
+          if (targetText[i] === ' ') {
+            currentText[i] = ' ';
+          } else {
+            currentText[i] = getRandomChar();
+          }
+        }
+      }
+    }
+
+    element.textContent = currentText.join('');
+
+    if (!allRevealed) {
+      iteration++;
+      setTimeout(update, speed);
+    } else {
+      // Ensure final text is correct
+      element.textContent = targetText;
+    }
+  }
+
+  // Start with all spaces or random chars
+  for (let i = 0; i < textLength; i++) {
+    if (targetText[i] === ' ') {
+      currentText[i] = ' ';
+    } else {
+      currentText[i] = getRandomChar();
+    }
+  }
+  element.textContent = currentText.join('');
+
+  // Start animation after a brief delay
+  setTimeout(update, 100);
+}
+
 // Wait for DOM to be ready
 document.addEventListener('DOMContentLoaded', async () => {
   // Set hero image with correct base path
@@ -208,6 +277,33 @@ document.addEventListener('DOMContentLoaded', async () => {
   const detailsImage = document.querySelector('.details-image');
   if (detailsImage) {
     detailsImage.src = `${basePath}363d3b735ab0afee1216dfe8f1368e4f.jpg`;
+  }
+
+  // Text reveal animation for hero section
+  const titleLines = document.querySelectorAll('.title-line');
+  titleLines.forEach((line, index) => {
+    const targetText = line.textContent;
+    line.textContent = ''; // Clear initial text
+    setTimeout(() => {
+      revealText(line, targetText, {
+        speed: 40,
+        randomness: 0.75,
+        iterations: 2
+      });
+    }, index * 800); // Stagger each line
+  });
+
+  const heroDescription = document.querySelector('.hero-description');
+  if (heroDescription) {
+    const targetText = heroDescription.textContent;
+    heroDescription.textContent = ''; // Clear initial text
+    setTimeout(() => {
+      revealText(heroDescription, targetText, {
+        speed: 25,
+        randomness: 0.8,
+        iterations: 1
+      });
+    }, 2000); // Start after title lines
   }
 
   // Smooth scroll to details section
