@@ -313,54 +313,61 @@ function createFallingLeaves() {
     const rotation = Math.random() * 720 + 360; // degrees
     const delay = Math.random() * 2; // seconds
 
-    // Create leaf shape - use SVG for better compatibility
-    const leafSVG = `
-      <svg width="${size}" height="${size}" viewBox="0 0 24 24" style="filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));">
-        <path fill="${color}" d="M12,2C8.14,2 5,5.14 5,9C5,14.25 12,22 12,22C12,22 19,14.25 19,9C19,5.14 15.86,2 12,2M12,4C14.76,4 17,6.24 17,9C17,11.88 14.12,16.19 12,18.88C9.88,16.19 7,11.88 7,9C7,6.24 9.24,4 12,4Z"/>
-      </svg>
-    `;
+    // Use emoji for simplicity - more reliable than SVG
+    const leafEmoji = Math.random() > 0.5 ? '🍂' : '🍁';
     
-    leaf.innerHTML = leafSVG;
+    leaf.textContent = leafEmoji;
     leaf.style.cssText = `
-      position: absolute;
-      top: -50px;
+      position: fixed;
+      top: -100px;
       left: ${startX}%;
-      width: ${size}px;
-      height: ${size}px;
+      font-size: ${size}px;
       opacity: 1;
-      transform: rotate(${Math.random() * 360}deg);
       pointer-events: none;
-      will-change: transform;
       display: block;
-      z-index: 100;
+      z-index: 9999;
+      line-height: 1;
+      filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8));
     `;
 
+    const initialRotation = Math.random() * 360;
     console.log(`Creating leaf ${leafCount} at position ${startX}%, size ${size}px, color ${color}`);
 
     // Add keyframe animation for this specific leaf
     const style = document.createElement('style');
-    const animationName = `fall-${Date.now()}-${Math.random()}`;
+    const animationName = `fall-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     style.textContent = `
       @keyframes ${animationName} {
         0% {
-          transform: translate(0, 0) rotate(0deg);
+          transform: translate(0, 0) rotate(${initialRotation}deg);
+          opacity: 1;
+        }
+        25% {
+          transform: translate(${horizontalDrift * 0.3}px, 25vh) rotate(${initialRotation + rotation * 0.25}deg);
           opacity: 1;
         }
         50% {
-          transform: translate(${horizontalDrift}px, 50vh) rotate(${rotation / 2}deg);
+          transform: translate(${horizontalDrift * 0.6}px, 50vh) rotate(${initialRotation + rotation * 0.5}deg);
           opacity: 1;
         }
+        75% {
+          transform: translate(${horizontalDrift * 0.9}px, 75vh) rotate(${initialRotation + rotation * 0.75}deg);
+          opacity: 0.8;
+        }
         100% {
-          transform: translate(${horizontalDrift * 1.2}px, calc(100vh + 50px)) rotate(${rotation}deg);
-          opacity: 0.3;
+          transform: translate(${horizontalDrift * 1.2}px, calc(100vh + 100px)) rotate(${initialRotation + rotation}deg);
+          opacity: 0;
         }
       }
       .falling-leaf[data-animation="${animationName}"] {
-        animation-name: ${animationName};
+        animation: ${animationName} ${fallDuration}s linear ${delay}s forwards;
       }
     `;
     document.head.appendChild(style);
     leaf.setAttribute('data-animation', animationName);
+    
+    // Force immediate render
+    leaf.offsetHeight; // Trigger reflow
 
     leafContainer.appendChild(leaf);
     console.log(`✓ Leaf ${leafCount} appended to container. Total leaves: ${leafContainer.children.length}`);
