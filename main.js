@@ -57,6 +57,7 @@ async function saveCharacter(character) {
       const { error } = await supabaseClient
         .from('roster')
         .update({
+          player_name: character.playerName,
           name: character.name,
           class: character.class,
           locked_in: character.lockedIn
@@ -73,6 +74,7 @@ async function saveCharacter(character) {
         .from('roster')
         .insert({
           user_id: character.userId,
+          player_name: character.playerName,
           name: character.name,
           class: character.class,
           locked_in: character.lockedIn
@@ -124,9 +126,10 @@ function renderRosterFromData(roster) {
   const rosterList = document.getElementById('rosterList');
   const classGrid = document.getElementById('classGrid');
   
-  // Normalize data (handle both userId and user_id)
+  // Normalize data (handle both userId and user_id, and playerName/player_name)
   const normalizedRoster = roster.map(char => ({
     userId: char.userId || char.user_id,
+    playerName: char.playerName || char.player_name || '',
     name: char.name,
     class: char.class
   }));
@@ -137,6 +140,7 @@ function renderRosterFromData(roster) {
   } else {
     rosterList.innerHTML = normalizedRoster.map((character, index) => `
       <div class="roster-card" style="animation-delay: ${index * 0.1}s">
+        <div class="roster-player-name">${escapeHtml(character.playerName)}</div>
         <div class="roster-character-name">${escapeHtml(character.name)}</div>
         <div class="roster-character-class">${escapeHtml(character.class)}</div>
       </div>
@@ -225,6 +229,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     existingCharacter = char;
     if (existingCharacter) {
       // Pre-fill form if user already has a character
+      if (existingCharacter.playerName) {
+        document.getElementById('playerName').value = existingCharacter.playerName;
+      }
       document.getElementById('characterName').value = existingCharacter.name;
       document.getElementById('characterClass').value = existingCharacter.class;
       document.getElementById('acceptDate').checked = true;
@@ -238,6 +245,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   characterForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
+    const playerName = document.getElementById('playerName').value.trim();
     const name = document.getElementById('characterName').value.trim();
     const characterClass = document.getElementById('characterClass').value;
     const acceptDate = document.getElementById('acceptDate').checked;
@@ -247,7 +255,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       return;
     }
 
-    if (!name || !characterClass) {
+    if (!playerName || !name || !characterClass) {
       alert('Please fill in all fields.');
       return;
     }
@@ -257,6 +265,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     
     const character = {
       userId,
+      playerName,
       name,
       class: characterClass,
       lockedIn: new Date().toISOString()
