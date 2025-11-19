@@ -265,43 +265,44 @@ function revealText(element, targetText, options = {}) {
   setTimeout(update, 100);
 }
 
-// Subtle particle effects for ambient atmosphere
+// Subtle particle effects for ambient atmosphere - falls down across entire page
 function createAmbientParticles() {
-  const heroSection = document.querySelector('.hero-section');
-  if (!heroSection) return;
-
-  const particleContainer = document.createElement('div');
-  particleContainer.className = 'ambient-particles';
-  particleContainer.style.cssText = `
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    overflow: visible;
-    z-index: 2;
-  `;
-  heroSection.appendChild(particleContainer);
+  // Check if container already exists
+  let particleContainer = document.querySelector('.ambient-particles');
+  if (!particleContainer) {
+    particleContainer = document.createElement('div');
+    particleContainer.className = 'ambient-particles';
+    particleContainer.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      overflow: visible;
+      z-index: 2;
+    `;
+    document.body.appendChild(particleContainer);
+  }
 
   function createParticle() {
     const particle = document.createElement('div');
-    const size = Math.random() * 4 + 2; // 2-6px - larger for visibility
+    const size = Math.random() * 3 + 2; // 2-5px
     const startX = Math.random() * 100;
-    const duration = Math.random() * 15 + 12; // 12-27 seconds
-    const drift = (Math.random() - 0.5) * 150;
+    const duration = Math.random() * 10 + 8; // 8-18 seconds - faster falling
+    const drift = (Math.random() - 0.5) * 200;
     
-    const animName = `floatUp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const animName = `fallDown-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
     particle.style.cssText = `
-      position: absolute;
+      position: fixed;
       width: ${size}px;
       height: ${size}px;
-      background: rgba(255, 255, 255, 0.4);
+      background: rgba(255, 255, 255, 0.3);
       border-radius: 50%;
-      top: -10px;
+      top: -20px;
       left: ${startX}%;
-      box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
+      box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
       pointer-events: none;
     `;
 
@@ -313,18 +314,18 @@ function createAmbientParticles() {
           opacity: 0;
         }
         5% {
-          opacity: 0.6;
+          opacity: 0.5;
         }
         95% {
-          opacity: 0.6;
+          opacity: 0.5;
         }
         100% {
-          transform: translate(${drift}px, calc(100vh + 50px));
+          transform: translate(${drift}px, calc(100vh + 100px));
           opacity: 0;
         }
       }
       .ambient-particles div[data-anim="${animName}"] {
-        animation: ${animName} ${duration}s linear ${Math.random() * 3}s forwards;
+        animation: ${animName} ${duration}s linear ${Math.random() * 2}s forwards;
       }
     `;
     document.head.appendChild(style);
@@ -334,19 +335,20 @@ function createAmbientParticles() {
 
     setTimeout(() => {
       if (particle.parentNode) particle.remove();
-    }, (duration + 3) * 1000);
+    }, (duration + 2) * 1000);
   }
 
-  // Create particles continuously
-  for (let i = 0; i < 10; i++) {
-    setTimeout(() => createParticle(), i * 1500);
+  // Create more particles initially
+  for (let i = 0; i < 20; i++) {
+    setTimeout(() => createParticle(), i * 800);
   }
 
+  // Create particles continuously with shorter interval
   setInterval(() => {
-    if (particleContainer.children.length < 15) {
+    if (particleContainer.children.length < 30) {
       createParticle();
     }
-  }, 2000);
+  }, 1200);
 }
 
 // Wait for DOM to be ready
