@@ -308,7 +308,7 @@ function createAmbientParticles() {
     const particle = document.createElement('div');
     const size = Math.random() * 4 + 2; // 2-6px - slightly larger
     const startX = Math.random() * 100;
-    const duration = Math.random() * 12 + 8; // 8-20 seconds
+    const duration = Math.random() * 25 + 20; // 20-45 seconds - slower falling
     const drift = (Math.random() - 0.5) * 250;
     
     const animName = `fallDown-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
