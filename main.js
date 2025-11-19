@@ -292,10 +292,18 @@ function createFallingLeaves() {
     console.log('✓ Using existing leaf container');
   }
 
-  const leafColors = ['#d2691e', '#cd853f', '#daa520', '#b8860b', '#8b4513', '#a0522d', '#d2b48c'];
-  const leafSizes = [25, 30, 35, 40, 45]; // pixels - made larger for visibility
+  const leafColors = [
+    'rgba(139, 69, 19, 0.8)',    // Sienna
+    'rgba(160, 82, 45, 0.8)',    // Saddle Brown
+    'rgba(205, 133, 63, 0.8)',   // Peru
+    'rgba(210, 105, 30, 0.8)',   // Chocolate
+    'rgba(184, 134, 11, 0.8)',   // Dark Goldenrod
+    'rgba(218, 165, 32, 0.8)',   // Goldenrod
+    'rgba(139, 90, 43, 0.8)'     // Burnt Sienna
+  ];
+  const leafSizes = [20, 24, 28, 32, 36]; // pixels
   let leafCount = 0;
-  const maxLeaves = 15;
+  const maxLeaves = 12;
 
   function createLeaf() {
     if (leafCount >= maxLeaves) return;
@@ -308,26 +316,42 @@ function createFallingLeaves() {
     const size = leafSizes[Math.floor(Math.random() * leafSizes.length)];
     const color = leafColors[Math.floor(Math.random() * leafColors.length)];
     const startX = Math.random() * 100; // percentage from left
-    const fallDuration = 8 + Math.random() * 7; // 8-15 seconds
-    const horizontalDrift = (Math.random() - 0.5) * 200; // pixels left/right
+    const fallDuration = 10 + Math.random() * 8; // 10-18 seconds
+    const horizontalDrift = (Math.random() - 0.5) * 300; // pixels left/right
     const rotation = Math.random() * 720 + 360; // degrees
-    const delay = Math.random() * 2; // seconds
-
-    // Use emoji for simplicity - more reliable than SVG
-    const leafEmoji = Math.random() > 0.5 ? '🍂' : '🍁';
+    const delay = Math.random() * 1.5; // seconds
     
-    leaf.textContent = leafEmoji;
+    // Create realistic leaf shape using SVG
+    const leafType = Math.random() > 0.5 ? 'maple' : 'oak';
+    let leafSVG;
+    
+    if (leafType === 'maple') {
+      // Maple leaf shape
+      leafSVG = `
+        <svg width="${size}" height="${size}" viewBox="0 0 24 24" style="filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.5));">
+          <path fill="${color}" d="M12,2C8.14,2 5,5.14 5,9C5,11.19 6.07,13.15 7.73,14.44C7.37,15.47 6.83,16.42 6.14,17.26C7.5,18.92 8.89,20.5 10,22C11.11,20.5 12.5,18.92 13.86,17.26C13.17,16.42 12.63,15.47 12.27,14.44C13.93,13.15 15,11.19 15,9C15,5.14 11.86,2 12,2M12,4C14.76,4 17,6.24 17,9C17,10.5 16.38,11.87 15.36,12.86L14.88,13.34L15,13.5C15.2,13.8 15.4,14.1 15.6,14.4C14.8,15.35 13.9,16.27 13,17.13C12.53,16.65 12.1,16.17 11.68,15.68C11.35,15.28 11.04,14.86 10.75,14.43C9.62,14.87 8.38,14.87 7.25,14.43C6.96,14.86 6.65,15.28 6.32,15.68C5.9,16.17 5.47,16.65 5,17.13C4.1,16.27 3.2,15.35 2.4,14.4C2.6,14.1 2.8,13.8 3,13.5L3.12,13.34L2.64,12.86C1.62,11.87 1,10.5 1,9C1,6.24 3.24,4 6,4H12Z"/>
+        </svg>
+      `;
+    } else {
+      // Oak leaf shape
+      leafSVG = `
+        <svg width="${size}" height="${size}" viewBox="0 0 24 24" style="filter: drop-shadow(1px 1px 2px rgba(0, 0, 0, 0.5));">
+          <path fill="${color}" d="M12,2C9.5,2 7.5,4 7.5,6.5C7.5,7.5 7.9,8.5 8.5,9.2C7.4,10.5 6.5,12 6,13.5C5.5,15 5.5,16.5 6,18C7,20.5 9.5,22 12,22C14.5,22 17,20.5 18,18C18.5,16.5 18.5,15 18,13.5C17.5,12 16.6,10.5 15.5,9.2C16.1,8.5 16.5,7.5 16.5,6.5C16.5,4 14.5,2 12,2M12,4C13.38,4 14.5,5.12 14.5,6.5C14.5,7.38 14.08,8.18 13.42,8.68C13.15,9.05 12.85,9.38 12.55,9.68C12.2,10.05 11.8,10.05 11.45,9.68C11.15,9.38 10.85,9.05 10.58,8.68C9.92,8.18 9.5,7.38 9.5,6.5C9.5,5.12 10.62,4 12,4Z"/>
+        </svg>
+      `;
+    }
+    
+    leaf.innerHTML = leafSVG;
     leaf.style.cssText = `
       position: fixed;
       top: -100px;
       left: ${startX}%;
-      font-size: ${size}px;
-      opacity: 1;
+      width: ${size}px;
+      height: ${size}px;
+      opacity: 0.9;
       pointer-events: none;
       display: block;
       z-index: 9999;
-      line-height: 1;
-      filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.8));
     `;
 
     const initialRotation = Math.random() * 360;
@@ -384,11 +408,11 @@ function createFallingLeaves() {
 
   // Create initial leaves immediately
   console.log('Starting to create initial leaves...');
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 6; i++) {
     setTimeout(() => {
       createLeaf();
       console.log(`Scheduled leaf ${i + 1}`);
-    }, i * 300);
+    }, i * 400);
   }
 
   // Continuously create new leaves
@@ -397,7 +421,7 @@ function createFallingLeaves() {
       createLeaf();
       console.log(`Creating new leaf via interval, current count: ${leafCount}`);
     }
-  }, 1200);
+  }, 1800);
 
   // Store interval for potential cleanup
   window.leafInterval = leafInterval;
@@ -444,16 +468,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     }, 2000); // Start after title lines
   }
 
-  // Start falling leaves animation after a short delay
+  // Start falling leaves animation immediately and also after a delay (redundancy)
   console.log('Scheduling falling leaves creation...');
+  try {
+    // Try immediately
+    createFallingLeaves();
+  } catch (error) {
+    console.error('Error creating falling leaves (immediate):', error);
+  }
+  
+  // Also try after delay as backup
   setTimeout(() => {
-    console.log('=== Calling createFallingLeaves() ===');
+    console.log('=== Calling createFallingLeaves() (backup) ===');
     try {
-      createFallingLeaves();
+      // Only create if container doesn't exist
+      if (!document.querySelector('.leaf-container')) {
+        createFallingLeaves();
+      }
     } catch (error) {
-      console.error('Error creating falling leaves:', error);
+      console.error('Error creating falling leaves (backup):', error);
     }
-  }, 1000);
+  }, 500);
 
   // Smooth scroll to details section
   const ctaButton = document.querySelector('.cta-button');
