@@ -279,43 +279,44 @@ function createAmbientParticles() {
     width: 100%;
     height: 100%;
     pointer-events: none;
-    overflow: hidden;
-    z-index: 1;
+    overflow: visible;
+    z-index: 2;
   `;
   heroSection.appendChild(particleContainer);
 
   function createParticle() {
     const particle = document.createElement('div');
-    const size = Math.random() * 3 + 1; // 1-4px
+    const size = Math.random() * 4 + 2; // 2-6px - larger for visibility
     const startX = Math.random() * 100;
-    const duration = Math.random() * 20 + 15; // 15-35 seconds
-    const drift = (Math.random() - 0.5) * 100;
+    const duration = Math.random() * 15 + 12; // 12-27 seconds
+    const drift = (Math.random() - 0.5) * 150;
+    
+    const animName = `floatUp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
     particle.style.cssText = `
       position: absolute;
       width: ${size}px;
       height: ${size}px;
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.4);
       border-radius: 50%;
       top: -10px;
       left: ${startX}%;
-      animation: floatUp ${duration}s linear infinite;
-      animation-delay: ${Math.random() * 5}s;
+      box-shadow: 0 0 6px rgba(255, 255, 255, 0.6);
+      pointer-events: none;
     `;
 
     const style = document.createElement('style');
-    const animName = `floatUp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     style.textContent = `
       @keyframes ${animName} {
         0% {
           transform: translate(0, 0);
           opacity: 0;
         }
-        10% {
-          opacity: 0.3;
+        5% {
+          opacity: 0.6;
         }
-        90% {
-          opacity: 0.3;
+        95% {
+          opacity: 0.6;
         }
         100% {
           transform: translate(${drift}px, calc(100vh + 50px));
@@ -323,7 +324,7 @@ function createAmbientParticles() {
         }
       }
       .ambient-particles div[data-anim="${animName}"] {
-        animation-name: ${animName};
+        animation: ${animName} ${duration}s linear ${Math.random() * 3}s forwards;
       }
     `;
     document.head.appendChild(style);
@@ -333,19 +334,19 @@ function createAmbientParticles() {
 
     setTimeout(() => {
       if (particle.parentNode) particle.remove();
-    }, duration * 1000);
+    }, (duration + 3) * 1000);
   }
 
   // Create particles continuously
-  for (let i = 0; i < 8; i++) {
-    setTimeout(() => createParticle(), i * 2000);
+  for (let i = 0; i < 10; i++) {
+    setTimeout(() => createParticle(), i * 1500);
   }
 
   setInterval(() => {
-    if (particleContainer.children.length < 12) {
+    if (particleContainer.children.length < 15) {
       createParticle();
     }
-  }, 2500);
+  }, 2000);
 }
 
 // Wait for DOM to be ready
@@ -393,22 +394,41 @@ document.addEventListener('DOMContentLoaded', async () => {
   createAmbientParticles();
 
   // Parallax effect for hero image on scroll
-  let lastScrollTop = 0;
   const heroImageWrapper = document.querySelector('.hero-image-wrapper');
+  const heroSection = document.querySelector('.hero-section');
   
-  if (heroImageWrapper) {
-    window.addEventListener('scroll', () => {
+  if (heroImageWrapper && heroSection) {
+    function updateParallax() {
       const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-      const scrollSpeed = scrollTop * 0.5;
-      heroImageWrapper.style.transform = `translateY(${scrollSpeed}px)`;
-      lastScrollTop = scrollTop;
-    }, { passive: true });
+      const heroSectionHeight = heroSection.offsetHeight;
+      const scrollProgress = scrollTop / heroSectionHeight;
+      
+      if (scrollProgress < 1) {
+        const parallaxOffset = scrollTop * 0.3;
+        heroImageWrapper.style.transform = `translateY(${parallaxOffset}px)`;
+        heroImageWrapper.style.willChange = 'transform';
+      }
+    }
+    
+    // Initial call
+    updateParallax();
+    
+    // Update on scroll
+    window.addEventListener('scroll', updateParallax, { passive: true });
+    
+    // Also update on resize
+    window.addEventListener('resize', updateParallax, { passive: true });
   }
 
-  // Subtle breathing effect on hero content
+  // Breathing effect on hero content - more noticeable
   const heroContent = document.querySelector('.hero-content');
   if (heroContent) {
+    // Remove any existing breathing styles first
+    const existingStyle = document.getElementById('breathing-animation-style');
+    if (existingStyle) existingStyle.remove();
+    
     const style = document.createElement('style');
+    style.id = 'breathing-animation-style';
     style.textContent = `
       @keyframes subtleBreath {
         0%, 100% {
@@ -416,15 +436,16 @@ document.addEventListener('DOMContentLoaded', async () => {
           opacity: 1;
         }
         50% {
-          transform: scale(1.01);
-          opacity: 0.98;
+          transform: scale(1.02);
+          opacity: 0.96;
         }
       }
       .hero-content {
-        animation: subtleBreath 8s ease-in-out infinite;
+        animation: subtleBreath 6s ease-in-out infinite !important;
       }
     `;
     document.head.appendChild(style);
+    console.log('Breathing animation applied to hero-content');
   }
 
   // Smooth scroll to details section
