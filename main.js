@@ -267,29 +267,30 @@ function revealText(element, targetText, options = {}) {
 
 // Falling leaves animation
 function createFallingLeaves() {
-  const heroSection = document.querySelector('.hero-section');
-  if (!heroSection) {
-    console.log('Hero section not found');
-    return;
+  console.log('=== FALLING LEAVES: Starting function ===');
+  
+  // Check if container already exists
+  let leafContainer = document.querySelector('.leaf-container');
+  if (!leafContainer) {
+    console.log('Creating new leaf container...');
+    leafContainer = document.createElement('div');
+    leafContainer.className = 'leaf-container';
+    leafContainer.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      overflow: visible;
+      z-index: 11;
+      background: transparent;
+    `;
+    document.body.appendChild(leafContainer);
+    console.log('✓ Leaf container created and appended to body');
+  } else {
+    console.log('✓ Using existing leaf container');
   }
-
-  console.log('Creating falling leaves...');
-
-  const leafContainer = document.createElement('div');
-  leafContainer.className = 'leaf-container';
-  leafContainer.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    pointer-events: none;
-    overflow: visible;
-    z-index: 11;
-  `;
-  document.body.appendChild(leafContainer);
-
-  console.log('Leaf container created and appended');
 
   const leafColors = ['#d2691e', '#cd853f', '#daa520', '#b8860b', '#8b4513', '#a0522d', '#d2b48c'];
   const leafSizes = [25, 30, 35, 40, 45]; // pixels - made larger for visibility
@@ -362,11 +363,15 @@ function createFallingLeaves() {
     leaf.setAttribute('data-animation', animationName);
 
     leafContainer.appendChild(leaf);
+    console.log(`✓ Leaf ${leafCount} appended to container. Total leaves: ${leafContainer.children.length}`);
 
     // Remove leaf after animation completes
     setTimeout(() => {
-      leaf.remove();
-      leafCount--;
+      if (leaf.parentNode) {
+        leaf.remove();
+        leafCount--;
+        console.log(`Leaf removed. Current count: ${leafCount}`);
+      }
     }, (fallDuration + delay) * 1000);
   }
 
@@ -433,10 +438,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Start falling leaves animation after a short delay
+  console.log('Scheduling falling leaves creation...');
   setTimeout(() => {
-    console.log('Attempting to create falling leaves...');
-    createFallingLeaves();
-  }, 500);
+    console.log('=== Calling createFallingLeaves() ===');
+    try {
+      createFallingLeaves();
+    } catch (error) {
+      console.error('Error creating falling leaves:', error);
+    }
+  }, 1000);
 
   // Smooth scroll to details section
   const ctaButton = document.querySelector('.cta-button');
