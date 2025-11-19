@@ -279,13 +279,13 @@ function createFallingLeaves() {
     width: 100%;
     height: 100%;
     pointer-events: none;
-    overflow: hidden;
-    z-index: 1;
+    overflow: visible;
+    z-index: 3;
   `;
   heroSection.appendChild(leafContainer);
 
   const leafColors = ['#d2691e', '#cd853f', '#daa520', '#b8860b', '#8b4513', '#a0522d', '#d2b48c'];
-  const leafSizes = [15, 20, 25, 30, 35]; // pixels
+  const leafSizes = [25, 30, 35, 40, 45]; // pixels - made larger for visibility
   let leafCount = 0;
   const maxLeaves = 15;
 
@@ -314,12 +314,11 @@ function createFallingLeaves() {
       top: -50px;
       left: ${startX}%;
       font-size: ${size}px;
-      color: ${color};
-      opacity: 0.8;
+      opacity: 0.9;
       transform: rotate(${Math.random() * 360}deg);
-      animation: fall ${fallDuration}s linear ${delay}s forwards;
-      filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.3));
+      filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
       pointer-events: none;
+      will-change: transform;
     `;
 
     // Add keyframe animation for this specific leaf
@@ -329,14 +328,14 @@ function createFallingLeaves() {
       @keyframes ${animationName} {
         0% {
           transform: translate(0, 0) rotate(0deg);
-          opacity: 0.8;
+          opacity: 0.9;
         }
         50% {
           transform: translate(${horizontalDrift}px, 50vh) rotate(${rotation / 2}deg);
-          opacity: 0.9;
+          opacity: 0.95;
         }
         100% {
-          transform: translate(${horizontalDrift * 1.2}px, 100vh) rotate(${rotation}deg);
+          transform: translate(${horizontalDrift * 1.2}px, calc(100vh + 50px)) rotate(${rotation}deg);
           opacity: 0;
         }
       }
@@ -356,9 +355,9 @@ function createFallingLeaves() {
     }, (fallDuration + delay) * 1000);
   }
 
-  // Create initial leaves
+  // Create initial leaves immediately
   for (let i = 0; i < 5; i++) {
-    setTimeout(() => createLeaf(), i * 1000);
+    setTimeout(() => createLeaf(), i * 500);
   }
 
   // Continuously create new leaves
@@ -366,7 +365,7 @@ function createFallingLeaves() {
     if (leafCount < maxLeaves) {
       createLeaf();
     }
-  }, 2000);
+  }, 1500);
 }
 
 // Wait for DOM to be ready
